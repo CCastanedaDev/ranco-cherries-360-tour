@@ -606,6 +606,8 @@
             loader.classList.remove('fade');
 
             const loader3d = new THREE.TextureLoader();
+
+            // First pass: Load with lower geometry for instant display
             loader3d.load(imageList[i], (tex) => {
                 // Apply anisotropic filtering for better quality
                 const maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
@@ -618,7 +620,8 @@
                     if (sphere.material) sphere.material.dispose();
                 }
 
-                const geo = new THREE.SphereGeometry(500, 120, 80); // Increased from 60x40 for better quality
+                // Start with medium quality for fast initial load
+                const geo = new THREE.SphereGeometry(500, 80, 60);
                 geo.scale(-1, 1, 1);
                 const mat = new THREE.MeshBasicMaterial({ map: tex });
                 sphere = new THREE.Mesh(geo, mat);
@@ -627,6 +630,19 @@
                 loader.classList.add('fade');
                 refreshUI(i);
                 draw();
+
+                // Upgrade to high quality after a short delay
+                setTimeout(() => {
+                    if (sphere && sphere.material.map === tex) {
+                        const highGeo = new THREE.SphereGeometry(500, 120, 80);
+                        highGeo.scale(-1, 1, 1);
+                        const oldSphere = sphere;
+                        sphere = new THREE.Mesh(highGeo, mat);
+                        scene.add(sphere);
+                        scene.remove(oldSphere);
+                        if (oldSphere.geometry) oldSphere.geometry.dispose();
+                    }
+                }, 500);
 
                 // Preload next and previous images in background
                 if (i < imageList.length - 1) {
