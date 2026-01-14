@@ -21,10 +21,10 @@
     <meta name="copyright" content="© 2026 Cristian Castañeda. All Rights Reserved.">
 
     <!-- Favicons -->
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
-    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
-    <link rel="apple-touch-icon" sizes="192x192" href="android-chrome-192x192.png">
+    <link rel="icon" type="image/x-icon" href="images/favicon.ico">
+    <link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="images/android-chrome-192x192.png">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -574,6 +574,10 @@
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setPixelRatio(window.devicePixelRatio);
             renderer.setSize(window.innerWidth, window.innerHeight);
+
+            // Enable anisotropic filtering for better quality
+            const maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
+
             viewport.appendChild(renderer.domElement);
 
             viewport.addEventListener('mousedown', handleMouseDown);
@@ -603,6 +607,10 @@
 
             const loader3d = new THREE.TextureLoader();
             loader3d.load(imageList[i], (tex) => {
+                // Apply anisotropic filtering for better quality
+                const maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
+                tex.anisotropy = maxAnisotropy;
+
                 if (sphere) {
                     scene.remove(sphere);
                     if (sphere.geometry) sphere.geometry.dispose();
@@ -610,7 +618,7 @@
                     if (sphere.material) sphere.material.dispose();
                 }
 
-                const geo = new THREE.SphereGeometry(500, 60, 40);
+                const geo = new THREE.SphereGeometry(500, 120, 80); // Increased from 60x40 for better quality
                 geo.scale(-1, 1, 1);
                 const mat = new THREE.MeshBasicMaterial({ map: tex });
                 sphere = new THREE.Mesh(geo, mat);
