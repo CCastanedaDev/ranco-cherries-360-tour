@@ -113,7 +113,7 @@
         /* Navegación minimalista */
         .navigation {
             position: fixed;
-            bottom: 50px;
+            bottom: 60px;
             left: 50%;
             transform: translateX(-50%);
             display: flex;
@@ -356,9 +356,9 @@
             left: 0;
             right: 0;
             background: linear-gradient(0deg, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0) 100%);
-            padding: 15px 30px;
+            padding: 10px 30px 10px 30px;
             text-align: center;
-            z-index: 996;
+            z-index: 995;
             transition: opacity 0.6s ease, transform 0.6s ease;
         }
 
@@ -454,7 +454,7 @@
             <img src="images/LogoColor.ddc5d2c8.svg" alt="Ranco Cherries" class="logo"
                 onerror="this.style.display='none'">
             <div class="brand-text">
-                <div class="brand-title">RANCO CHERRY</div>
+                <div class="brand-title">RANCO CHERRY CHIMBARONGO</div>
                 <div class="brand-subtitle">Tour Virtual 360°</div>
             </div>
         </div>
@@ -525,6 +525,16 @@
         let startLon = 0, startLat = 0;
         let hideTimer;
 
+        // Momentum variables
+        let velocityX = 0, velocityY = 0;
+        let lastMoveTime = 0;
+        let lastX = 0, lastY = 0;
+        let momentumActive = false;
+
+        // Gyroscope variables
+        let gyroEnabled = false;
+        let gyroAlpha = 0, gyroBeta = 0, gyroGamma = 0;
+
         const loader = document.getElementById('loader');
         const counter = document.getElementById('counter');
         const viewport = document.getElementById('container');
@@ -546,8 +556,19 @@
             viewport.addEventListener('mousemove', handleMouseMove);
             viewport.addEventListener('mouseup', handleMouseUp);
             viewport.addEventListener('wheel', handleWheel);
+
+            // Touch events for mobile
+            viewport.addEventListener('touchstart', handleTouchStart);
+            viewport.addEventListener('touchmove', handleTouchMove);
+            viewport.addEventListener('touchend', handleTouchEnd);
+
             document.addEventListener('mousemove', showUI);
             window.addEventListener('resize', handleResize);
+
+            // Auto-enable gyroscope on mobile
+            if (/Mobi|Android/i.test(navigator.userAgent)) {
+                setTimeout(() => enableGyroscope(), 1000);
+            }
 
             loadImage(0);
             startHideTimer();
@@ -582,21 +603,43 @@
 
         function handleMouseDown(e) {
             dragging = true;
+            momentumActive = false;
+            velocityX = 0;
+            velocityY = 0;
             startX = e.clientX;
             startY = e.clientY;
+            lastX = e.clientX;
+            lastY = e.clientY;
+            lastMoveTime = Date.now();
             startLon = lon;
             startLat = lat;
         }
 
         function handleMouseMove(e) {
             if (dragging) {
+                const currentTime = Date.now();
+                const deltaTime = currentTime - lastMoveTime;
+
+                if (deltaTime > 0) {
+                    velocityX = (lastX - e.clientX) / deltaTime;
+                    velocityY = (e.clientY - lastY) / deltaTime;
+                }
+
                 lon = (startX - e.clientX) * 0.1 + startLon;
                 lat = (e.clientY - startY) * 0.1 + startLat;
+
+                lastX = e.clientX;
+                lastY = e.clientY;
+                lastMoveTime = currentTime;
             }
         }
 
         function handleMouseUp() {
             dragging = false;
+            if (Math.abs(velocityX) > 0.1 || Math.abs(velocityY) > 0.1) {
+                momentumActive = true;
+                applyMomentum();
+            }
         }
 
         function handleWheel(e) {
@@ -606,10 +649,101 @@
             camera.updateProjectionMatrix();
         }
 
+        function handleTouchStart(e) {
+            if (e.touches.length === 1) {
+                gyroEnabled = false;
+                dragging = true;
+                momentumActive = false;
+                velocityX = 0;
+                velocityY = 0;
+                startX = e.touches[0].clientX;
+                startY = e.touches[0].clientY;
+                lastX = e.touches[0].clientX;
+                lastY = e.touches[0].clientY;
+                lastMoveTime = Date.now();
+                startLon = lon;
+                startLat = lat;
+            }
+        }
+
+        function handleTouchMove(e) {
+            if (e.touches.length === 1 && dragging) {
+                e.preventDefault();
+                const currentTime = Date.now();
+                const deltaTime = currentTime - lastMoveTime;
+
+                if (deltaTime > 0) {
+                    velocityX = (lastX - e.touches[0].clientX) / deltaTime;
+                    velocityY = (e.touches[0].clientY - lastY) / deltaTime;
+                }
+
+                lon = (startX - e.touches[0].clientX) * 0.1 + startLon;
+                lat = (e.touches[0].clientY - startY) * 0.1 + startLat;
+
+                lastX = e.touches[0].clientX;
+                lastY = e.touches[0].clientY;
+                lastMoveTime = currentTime;
+            }
+        }
+
+        function handleTouchEnd() {
+            dragging = false;
+            if (Math.abs(velocityX) > 0.1 || Math.abs(velocityY) > 0.1) {
+                momentumActive = true;
+                applyMomentum();
+            }
+        }
+
         function handleResize() {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function applyMomentum() {
+            if (!momentumActive) return;
+
+            const friction = 0.92;
+            velocityX *= friction;
+            velocityY *= friction;
+
+            lon += velocityX * 10;
+            lat += velocityY * 10;
+
+            if (Math.abs(velocityX) < 0.01 && Math.abs(velocityY) < 0.01) {
+                momentumActive = false;
+                velocityX = 0;
+                velocityY = 0;
+            } else {
+                requestAnimationFrame(applyMomentum);
+            }
+        }
+
+        function enableGyroscope() {
+            if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                DeviceOrientationEvent.requestPermission()
+                    .then(permissionState => {
+                        if (permissionState === 'granted') {
+                            window.addEventListener('deviceorientation', handleOrientation);
+                            gyroEnabled = true;
+                        }
+                    })
+                    .catch(console.error);
+            } else if ('ondeviceorientation' in window) {
+                window.addEventListener('deviceorientation', handleOrientation);
+                gyroEnabled = true;
+            }
+        }
+
+        function handleOrientation(e) {
+            if (!gyroEnabled) return;
+
+            gyroAlpha = e.alpha || 0;
+            gyroBeta = e.beta || 0;
+            gyroGamma = e.gamma || 0;
+
+            lon = gyroAlpha - 180;
+            lat = gyroBeta - 90;
         }
 
         function draw() {
