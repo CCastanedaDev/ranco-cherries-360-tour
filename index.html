@@ -664,256 +664,257 @@
                         scene.remove(oldSphere);
                         if (oldSphere.geometry) oldSphere.geometry.dispose();
                     }
+                }, 500);
 
-                    // Preload next and previous images into Three.js cache for instant switching
-                    const preloader = new THREE.TextureLoader();
-                    if (i < imageList.length - 1) {
-                        preloader.load(imageList[i + 1], (preloadedTex) => {
-                            preloadedTex.anisotropy = maxAnisotropy;
-                        });
-                    }
-                    if (i > 0) {
-                        preloader.load(imageList[i - 1], (preloadedTex) => {
-                            preloadedTex.anisotropy = maxAnisotropy;
-                        });
-                    }
-                }, undefined, (err) => {
-                    console.error('Load error:', err);
-                    loader.classList.add('fade');
-                });
-            }
+                // Preload next and previous images into Three.js cache for instant switching
+                const preloader = new THREE.TextureLoader();
+                if (i < imageList.length - 1) {
+                    preloader.load(imageList[i + 1], (preloadedTex) => {
+                        preloadedTex.anisotropy = maxAnisotropy;
+                    });
+                }
+                if (i > 0) {
+                    preloader.load(imageList[i - 1], (preloadedTex) => {
+                        preloadedTex.anisotropy = maxAnisotropy;
+                    });
+                }
+            }, undefined, (err) => {
+                console.error('Load error:', err);
+                loader.classList.add('fade');
+            });
+        }
 
         function handleMouseDown(e) {
-                    dragging = true;
-                    momentumActive = false;
-                    velocityX = 0;
-                    velocityY = 0;
-                    startX = e.clientX;
-                    startY = e.clientY;
-                    lastX = e.clientX;
-                    lastY = e.clientY;
-                    lastMoveTime = Date.now();
-                    startLon = lon;
-                    startLat = lat;
-                }
+            dragging = true;
+            momentumActive = false;
+            velocityX = 0;
+            velocityY = 0;
+            startX = e.clientX;
+            startY = e.clientY;
+            lastX = e.clientX;
+            lastY = e.clientY;
+            lastMoveTime = Date.now();
+            startLon = lon;
+            startLat = lat;
+        }
 
         function handleMouseMove(e) {
-                    if (dragging) {
-                        const currentTime = Date.now();
-                        const deltaTime = currentTime - lastMoveTime;
+            if (dragging) {
+                const currentTime = Date.now();
+                const deltaTime = currentTime - lastMoveTime;
 
-                        if (deltaTime > 0) {
-                            velocityX = (lastX - e.clientX) / deltaTime;
-                            velocityY = (e.clientY - lastY) / deltaTime;
-                        }
-
-                        lon = (startX - e.clientX) * 0.1 + startLon;
-                        lat = (e.clientY - startY) * 0.1 + startLat;
-
-                        lastX = e.clientX;
-                        lastY = e.clientY;
-                        lastMoveTime = currentTime;
-                    }
+                if (deltaTime > 0) {
+                    velocityX = (lastX - e.clientX) / deltaTime;
+                    velocityY = (e.clientY - lastY) / deltaTime;
                 }
+
+                lon = (startX - e.clientX) * 0.1 + startLon;
+                lat = (e.clientY - startY) * 0.1 + startLat;
+
+                lastX = e.clientX;
+                lastY = e.clientY;
+                lastMoveTime = currentTime;
+            }
+        }
 
         function handleMouseUp() {
-                    dragging = false;
-                    if (Math.abs(velocityX) > 0.1 || Math.abs(velocityY) > 0.1) {
-                        momentumActive = true;
-                        applyMomentum();
-                    }
-                }
+            dragging = false;
+            if (Math.abs(velocityX) > 0.1 || Math.abs(velocityY) > 0.1) {
+                momentumActive = true;
+                applyMomentum();
+            }
+        }
 
         function handleWheel(e) {
-                    e.preventDefault();
-                    const fov = camera.fov + e.deltaY * 0.05;
-                    camera.fov = THREE.MathUtils.clamp(fov, 30, 100);
-                    camera.updateProjectionMatrix();
-                }
+            e.preventDefault();
+            const fov = camera.fov + e.deltaY * 0.05;
+            camera.fov = THREE.MathUtils.clamp(fov, 30, 100);
+            camera.updateProjectionMatrix();
+        }
 
         function handleTouchStart(e) {
-                    if (e.touches.length === 1) {
-                        gyroEnabled = false;
-                        dragging = true;
-                        momentumActive = false;
-                        velocityX = 0;
-                        velocityY = 0;
-                        startX = e.touches[0].clientX;
-                        startY = e.touches[0].clientY;
-                        lastX = e.touches[0].clientX;
-                        lastY = e.touches[0].clientY;
-                        lastMoveTime = Date.now();
-                        startLon = lon;
-                        startLat = lat;
-                    }
-                }
+            if (e.touches.length === 1) {
+                gyroEnabled = false;
+                dragging = true;
+                momentumActive = false;
+                velocityX = 0;
+                velocityY = 0;
+                startX = e.touches[0].clientX;
+                startY = e.touches[0].clientY;
+                lastX = e.touches[0].clientX;
+                lastY = e.touches[0].clientY;
+                lastMoveTime = Date.now();
+                startLon = lon;
+                startLat = lat;
+            }
+        }
 
         function handleTouchMove(e) {
-                    if (e.touches.length === 1 && dragging) {
-                        e.preventDefault();
-                        const currentTime = Date.now();
-                        const deltaTime = currentTime - lastMoveTime;
+            if (e.touches.length === 1 && dragging) {
+                e.preventDefault();
+                const currentTime = Date.now();
+                const deltaTime = currentTime - lastMoveTime;
 
-                        if (deltaTime > 0) {
-                            velocityX = (lastX - e.touches[0].clientX) / deltaTime;
-                            velocityY = (e.touches[0].clientY - lastY) / deltaTime;
-                        }
-
-                        lon = (startX - e.touches[0].clientX) * 0.1 + startLon;
-                        lat = (e.touches[0].clientY - startY) * 0.1 + startLat;
-
-                        lastX = e.touches[0].clientX;
-                        lastY = e.touches[0].clientY;
-                        lastMoveTime = currentTime;
-                    }
+                if (deltaTime > 0) {
+                    velocityX = (lastX - e.touches[0].clientX) / deltaTime;
+                    velocityY = (e.touches[0].clientY - lastY) / deltaTime;
                 }
+
+                lon = (startX - e.touches[0].clientX) * 0.1 + startLon;
+                lat = (e.touches[0].clientY - startY) * 0.1 + startLat;
+
+                lastX = e.touches[0].clientX;
+                lastY = e.touches[0].clientY;
+                lastMoveTime = currentTime;
+            }
+        }
 
         function handleTouchEnd() {
-                    dragging = false;
-                    if (Math.abs(velocityX) > 0.1 || Math.abs(velocityY) > 0.1) {
-                        momentumActive = true;
-                        applyMomentum();
-                    }
-                }
+            dragging = false;
+            if (Math.abs(velocityX) > 0.1 || Math.abs(velocityY) > 0.1) {
+                momentumActive = true;
+                applyMomentum();
+            }
+        }
 
         function handleResize() {
-                    camera.aspect = window.innerWidth / window.innerHeight;
-                    camera.updateProjectionMatrix();
-                    renderer.setSize(window.innerWidth, window.innerHeight);
-                }
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
 
         function applyMomentum() {
-                    if (!momentumActive) return;
+            if (!momentumActive) return;
 
-                    const friction = 0.95; // Increased from 0.92 for slower deceleration
-                    velocityX *= friction;
-                    velocityY *= friction;
+            const friction = 0.95; // Increased from 0.92 for slower deceleration
+            velocityX *= friction;
+            velocityY *= friction;
 
-                    lon += velocityX * 5; // Reduced from 10 for slower movement
-                    lat += velocityY * 5; // Reduced from 10 for slower movement
+            lon += velocityX * 5; // Reduced from 10 for slower movement
+            lat += velocityY * 5; // Reduced from 10 for slower movement
 
-                    if (Math.abs(velocityX) < 0.01 && Math.abs(velocityY) < 0.01) {
-                        momentumActive = false;
-                        velocityX = 0;
-                        velocityY = 0;
-                    } else {
-                        requestAnimationFrame(applyMomentum);
-                    }
-                }
+            if (Math.abs(velocityX) < 0.01 && Math.abs(velocityY) < 0.01) {
+                momentumActive = false;
+                velocityX = 0;
+                velocityY = 0;
+            } else {
+                requestAnimationFrame(applyMomentum);
+            }
+        }
 
         function enableGyroscope() {
-                    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-                        DeviceOrientationEvent.requestPermission()
-                            .then(permissionState => {
-                                if (permissionState === 'granted') {
-                                    window.addEventListener('deviceorientation', handleOrientation);
-                                    gyroEnabled = true;
-                                }
-                            })
-                            .catch(console.error);
-                    } else if ('ondeviceorientation' in window) {
-                        window.addEventListener('deviceorientation', handleOrientation);
-                        gyroEnabled = true;
-                    }
-                }
+            if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                DeviceOrientationEvent.requestPermission()
+                    .then(permissionState => {
+                        if (permissionState === 'granted') {
+                            window.addEventListener('deviceorientation', handleOrientation);
+                            gyroEnabled = true;
+                        }
+                    })
+                    .catch(console.error);
+            } else if ('ondeviceorientation' in window) {
+                window.addEventListener('deviceorientation', handleOrientation);
+                gyroEnabled = true;
+            }
+        }
 
         function handleOrientation(e) {
-                    if (!gyroEnabled) return;
+            if (!gyroEnabled) return;
 
-                    gyroAlpha = e.alpha || 0;
-                    gyroBeta = e.beta || 0;
-                    gyroGamma = e.gamma || 0;
+            gyroAlpha = e.alpha || 0;
+            gyroBeta = e.beta || 0;
+            gyroGamma = e.gamma || 0;
 
-                    lon = gyroAlpha - 180;
-                    lat = gyroBeta - 90;
-                }
+            lon = gyroAlpha - 180;
+            lat = gyroBeta - 90;
+        }
 
         function draw() {
-                    requestAnimationFrame(draw);
-                    lat = Math.max(-85, Math.min(85, lat));
-                    const phi = THREE.MathUtils.degToRad(90 - lat);
-                    const theta = THREE.MathUtils.degToRad(lon);
-                    const x = 500 * Math.sin(phi) * Math.cos(theta);
-                    const y = 500 * Math.cos(phi);
-                    const z = 500 * Math.sin(phi) * Math.sin(theta);
-                    camera.lookAt(x, y, z);
-                    renderer.render(scene, camera);
-                }
+            requestAnimationFrame(draw);
+            lat = Math.max(-85, Math.min(85, lat));
+            const phi = THREE.MathUtils.degToRad(90 - lat);
+            const theta = THREE.MathUtils.degToRad(lon);
+            const x = 500 * Math.sin(phi) * Math.cos(theta);
+            const y = 500 * Math.cos(phi);
+            const z = 500 * Math.sin(phi) * Math.sin(theta);
+            camera.lookAt(x, y, z);
+            renderer.render(scene, camera);
+        }
 
         function changeImage(i) {
-                    idx = i;
-                    loadImage(i);
-                }
+            idx = i;
+            loadImage(i);
+        }
 
         function refreshUI(i) {
-                    counter.textContent = `${i + 1} / ${imageList.length}`;
-                    document.querySelectorAll('.thumb').forEach((t, j) => {
-                        t.classList.toggle('active', j === i);
-                    });
-                }
+            counter.textContent = `${i + 1} / ${imageList.length}`;
+            document.querySelectorAll('.thumb').forEach((t, j) => {
+                t.classList.toggle('active', j === i);
+            });
+        }
 
         function buildGallery() {
-                    imageList.forEach((img, i) => {
-                        const t = document.createElement('img');
-                        t.src = img;
-                        t.className = 'thumb';
-                        t.onclick = () => changeImage(i);
-                        gallery.appendChild(t);
-                    });
-                }
+            imageList.forEach((img, i) => {
+                const t = document.createElement('img');
+                t.src = img;
+                t.className = 'thumb';
+                t.onclick = () => changeImage(i);
+                gallery.appendChild(t);
+            });
+        }
 
         function showUI() {
-                    header.classList.remove('hide');
-                    navigation.classList.remove('hide');
-                    gallery.classList.remove('hide');
-                    footer.classList.remove('hide');
-                    clearTimeout(hideTimer);
-                    startHideTimer();
-                }
+            header.classList.remove('hide');
+            navigation.classList.remove('hide');
+            gallery.classList.remove('hide');
+            footer.classList.remove('hide');
+            clearTimeout(hideTimer);
+            startHideTimer();
+        }
 
         function startHideTimer() {
-                    hideTimer = setTimeout(() => {
-                        if (!infoPanel.classList.contains('open')) {
-                            header.classList.add('hide');
-                            navigation.classList.add('hide');
-                            gallery.classList.add('hide');
-                            footer.classList.add('hide');
-                        }
-                    }, 10000); // Increased from 3500ms to 10 seconds
+            hideTimer = setTimeout(() => {
+                if (!infoPanel.classList.contains('open')) {
+                    header.classList.add('hide');
+                    navigation.classList.add('hide');
+                    gallery.classList.add('hide');
+                    footer.classList.add('hide');
                 }
+            }, 10000); // Increased from 3500ms to 10 seconds
+        }
 
         document.getElementById('btnPrev').onclick = () => {
-                    changeImage((idx - 1 + imageList.length) % imageList.length);
-                };
+            changeImage((idx - 1 + imageList.length) % imageList.length);
+        };
 
-            document.getElementById('btnNext').onclick = () => {
-                changeImage((idx + 1) % imageList.length);
-            };
+        document.getElementById('btnNext').onclick = () => {
+            changeImage((idx + 1) % imageList.length);
+        };
 
-            document.getElementById('btnFullscreen').onclick = () => {
-                if (!document.fullscreenElement) {
-                    document.documentElement.requestFullscreen();
-                } else {
-                    document.exitFullscreen();
-                }
-            };
+        document.getElementById('btnFullscreen').onclick = () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        };
 
-            document.getElementById('btnInfo').onclick = () => {
-                infoPanel.classList.add('open');
-            };
+        document.getElementById('btnInfo').onclick = () => {
+            infoPanel.classList.add('open');
+        };
 
-            document.getElementById('btnCloseInfo').onclick = () => {
-                infoPanel.classList.remove('open');
-            };
+        document.getElementById('btnCloseInfo').onclick = () => {
+            infoPanel.classList.remove('open');
+        };
 
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'ArrowLeft') document.getElementById('btnPrev').click();
-                if (e.key === 'ArrowRight') document.getElementById('btnNext').click();
-                if (e.key === 'Escape') infoPanel.classList.remove('open');
-            });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') document.getElementById('btnPrev').click();
+            if (e.key === 'ArrowRight') document.getElementById('btnNext').click();
+            if (e.key === 'Escape') infoPanel.classList.remove('open');
+        });
 
-            buildGallery();
-            setup();
+        buildGallery();
+        setup();
     </script>
 </body>
 
