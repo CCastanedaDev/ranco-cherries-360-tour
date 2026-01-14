@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ranco Cherries Chimbarongo - Tour Virtual 360°</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: #000;
+            color: #fff;
+            overflow: hidden;
+        }
+
+        #container {
+            width: 100vw;
+            height: 100vh;
+            cursor: grab;
+        }
+
+        #container:active {
+            cursor: grabbing;
+        }
+
+        /* Header minimalista */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0) 100%);
+            padding: 25px 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        .header.hide {
+            opacity: 0;
+            transform: translateY(-20px);
+            pointer-events: none;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .logo {
+            height: 45px;
+            width: auto;
+        }
+
+        .brand-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brand-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: 3px;
+        }
+
+        .brand-subtitle {
+            font-size: 11px;
+            font-weight: 300;
+            color: rgba(255, 255, 255, 0.6);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-top: 2px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn-header {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            color: white;
+            padding: 10px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 400;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .btn-header:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Navegación minimalista */
+        .navigation {
+            position: fixed;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 50px;
+            z-index: 999;
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        .navigation.hide {
+            opacity: 0;
+            transform: translate(-50%, 20px);
+            pointer-events: none;
+        }
+
+        .nav-button {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.35s ease;
+        }
+
+        .nav-button:hover {
+            background: rgba(255, 255, 255, 0.18);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: scale(1.08);
+        }
+
+        .counter {
+            font-size: 14px;
+            font-weight: 300;
+            color: rgba(255, 255, 255, 0.9);
+            letter-spacing: 3px;
+            min-width: 70px;
+            text-align: center;
+        }
+
+        /* Galería lateral */
+        .gallery {
+            position: fixed;
+            bottom: 50px;
+            right: 50px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 998;
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        .gallery.hide {
+            opacity: 0;
+            transform: translateX(20px);
+            pointer-events: none;
+        }
+
+        .thumb {
+            width: 70px;
+            height: 70px;
+            border-radius: 10px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            object-fit: cover;
+            opacity: 0.5;
+            filter: grayscale(0.3);
+        }
+
+        .thumb:hover {
+            opacity: 1;
+            filter: grayscale(0);
+            border-color: rgba(255, 255, 255, 0.6);
+            transform: scale(1.08);
+        }
+
+        .thumb.active {
+            opacity: 1;
+            filter: grayscale(0);
+            border-color: #c41230;
+            box-shadow: 0 0 25px rgba(196, 18, 48, 0.6);
+        }
+
+        /* Pantalla de carga */
+        .loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 5000;
+            transition: opacity 0.6s ease;
+        }
+
+        .loader.fade {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loader-logo {
+            height: 70px;
+            margin-bottom: 50px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.6;
+            }
+        }
+
+        .loader-spinner {
+            width: 45px;
+            height: 45px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top: 3px solid #c41230;
+            border-radius: 50%;
+            animation: rotate 1.2s linear infinite;
+        }
+
+        @keyframes rotate {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Hint inicial */
+        .hint {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            font-size: 15px;
+            font-weight: 300;
+            color: rgba(255, 255, 255, 0.7);
+            letter-spacing: 2px;
+            z-index: 997;
+            animation: hintFade 5s ease forwards;
+            pointer-events: none;
+        }
+
+        @keyframes hintFade {
+
+            0%,
+            100% {
+                opacity: 0;
+            }
+
+            15%,
+            85% {
+                opacity: 1;
+            }
+        }
+
+        /* Panel info */
+        .info-panel {
+            position: fixed;
+            top: 0;
+            right: -450px;
+            width: 450px;
+            height: 100vh;
+            background: rgba(10, 10, 10, 0.98);
+            backdrop-filter: blur(25px);
+            padding: 60px 50px;
+            z-index: 3000;
+            transition: right 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-y: auto;
+            border-left: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .info-panel.open {
+            right: 0;
+        }
+
+        .info-close {
+            position: absolute;
+            top: 35px;
+            right: 40px;
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 35px;
+            cursor: pointer;
+            transition: color 0.3s;
+            line-height: 1;
+        }
+
+        .info-close:hover {
+            color: white;
+        }
+
+        .info-panel h2 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 30px;
+            color: #c41230;
+            letter-spacing: 1px;
+        }
+
+        .info-panel p {
+            font-size: 15px;
+            line-height: 1.9;
+            color: rgba(255, 255, 255, 0.75);
+            margin-bottom: 20px;
+            font-weight: 300;
+        }
+
+        .info-panel strong {
+            color: white;
+            font-weight: 600;
+        }
+
+        /* Footer signature */
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(0deg, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0) 100%);
+            padding: 15px 30px;
+            text-align: center;
+            z-index: 996;
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        .footer.hide {
+            opacity: 0;
+            transform: translateY(20px);
+            pointer-events: none;
+        }
+
+        .footer-text {
+            font-size: 11px;
+            font-weight: 300;
+            color: rgba(255, 255, 255, 0.5);
+            letter-spacing: 1.5px;
+        }
+
+        .footer-text span {
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 400;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header {
+                padding: 20px 25px;
+            }
+
+            .logo {
+                height: 32px;
+            }
+
+            .brand-title {
+                font-size: 14px;
+                letter-spacing: 2px;
+            }
+
+            .brand-subtitle {
+                font-size: 9px;
+            }
+
+            .gallery {
+                flex-direction: row;
+                bottom: 140px;
+                right: 50%;
+                transform: translateX(50%);
+                max-width: 90vw;
+                overflow-x: auto;
+            }
+
+            .gallery.hide {
+                transform: translate(50%, 20px);
+            }
+
+            .thumb {
+                width: 55px;
+                height: 55px;
+            }
+
+            .info-panel {
+                width: 100vw;
+                right: -100vw;
+                padding: 50px 30px;
+            }
+
+            .navigation {
+                bottom: 40px;
+                gap: 35px;
+            }
+
+            .nav-button {
+                width: 50px;
+                height: 50px;
+                font-size: 22px;
+            }
+
+            .footer {
+                padding: 12px 20px;
+            }
+
+            .footer-text {
+                font-size: 9px;
+                letter-spacing: 1px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="container"></div>
+
+    <div class="header" id="header">
+        <div class="brand">
+            <img src="images/LogoColor.ddc5d2c8.svg" alt="Ranco Cherries" class="logo"
+                onerror="this.style.display='none'">
+            <div class="brand-text">
+                <div class="brand-title">RANCO CHERRY</div>
+                <div class="brand-subtitle">Tour Virtual 360°</div>
+            </div>
+        </div>
+        <div class="header-actions">
+            <button class="btn-header" id="btnInfo">Info</button>
+            <button class="btn-header" id="btnFullscreen">Pantalla Completa</button>
+        </div>
+    </div>
+
+    <div class="navigation" id="navigation">
+        <button class="nav-button" id="btnPrev">‹</button>
+        <div class="counter" id="counter">1 / 13</div>
+        <button class="nav-button" id="btnNext">›</button>
+    </div>
+
+    <div class="gallery" id="gallery"></div>
+
+    <div class="hint">Arrastra para explorar • Rueda para zoom</div>
+
+    <div class="footer" id="footer">
+        <div class="footer-text">Powered by <span>Zencat</span> - <span>CCastaneda</span> - <span>Jaime Reyes</span>
+        </div>
+    </div>
+
+    <div class="loader" id="loader">
+        <img src="images/LogoColor.ddc5d2c8.svg" alt="Ranco" class="loader-logo" onerror="this.style.display='none'">
+        <div class="loader-spinner"></div>
+    </div>
+
+    <div class="info-panel" id="infoPanel">
+        <button class="info-close" id="btnCloseInfo">×</button>
+        <h2>Tour Virtual</h2>
+        <p>Explora nuestras instalaciones en una experiencia inmersiva de 360 grados.</p>
+        <p><strong>Cómo navegar:</strong></p>
+        <p>• Arrastra con el mouse para mirar alrededor</p>
+        <p>• Usa la rueda para acercar o alejar la vista</p>
+        <p>• Navega entre vistas con las flechas</p>
+        <p>• Usa las teclas ← → del teclado</p>
+        <p>• Haz clic en las miniaturas laterales</p>
+        <br><br>
+        <p style="color: #c41230; font-weight: 600; font-size: 16px;">En Ranco creemos que la calidad de la fruta es lo
+            más importante.</p>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        const imageList = [
+            'images/DJI_0412.JPG',
+            'images/DJI_0413.JPG',
+            'images/DJI_0414.JPG',
+            'images/DJI_0415.JPG',
+            'images/DJI_0416.JPG',
+            'images/DJI_0417.JPG',
+            'images/DJI_0422.JPG',
+            'images/DJI_0423.JPG',
+            'images/DJI_0424.JPG',
+            'images/DJI_0425.JPG',
+            'images/DJI_0426.JPG',
+            'images/DJI_0428.JPG',
+            'images/DJI_0429.JPG'
+        ];
+
+        let idx = 0;
+        let scene, camera, renderer, sphere;
+        let dragging = false;
+        let startX = 0, startY = 0;
+        let lon = 0, lat = 0;
+        let startLon = 0, startLat = 0;
+        let hideTimer;
+
+        const loader = document.getElementById('loader');
+        const counter = document.getElementById('counter');
+        const viewport = document.getElementById('container');
+        const header = document.getElementById('header');
+        const navigation = document.getElementById('navigation');
+        const gallery = document.getElementById('gallery');
+        const footer = document.getElementById('footer');
+        const infoPanel = document.getElementById('infoPanel');
+
+        function setup() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1100);
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            viewport.appendChild(renderer.domElement);
+
+            viewport.addEventListener('mousedown', handleMouseDown);
+            viewport.addEventListener('mousemove', handleMouseMove);
+            viewport.addEventListener('mouseup', handleMouseUp);
+            viewport.addEventListener('wheel', handleWheel);
+            document.addEventListener('mousemove', showUI);
+            window.addEventListener('resize', handleResize);
+
+            loadImage(0);
+            startHideTimer();
+        }
+
+        function loadImage(i) {
+            loader.classList.remove('fade');
+
+            const loader3d = new THREE.TextureLoader();
+            loader3d.load(imageList[i], (tex) => {
+                if (sphere) {
+                    scene.remove(sphere);
+                    if (sphere.geometry) sphere.geometry.dispose();
+                    if (sphere.material.map) sphere.material.map.dispose();
+                    if (sphere.material) sphere.material.dispose();
+                }
+
+                const geo = new THREE.SphereGeometry(500, 60, 40);
+                geo.scale(-1, 1, 1);
+                const mat = new THREE.MeshBasicMaterial({ map: tex });
+                sphere = new THREE.Mesh(geo, mat);
+                scene.add(sphere);
+
+                loader.classList.add('fade');
+                refreshUI(i);
+                draw();
+            }, undefined, (err) => {
+                console.error('Load error:', err);
+                loader.classList.add('fade');
+            });
+        }
+
+        function handleMouseDown(e) {
+            dragging = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            startLon = lon;
+            startLat = lat;
+        }
+
+        function handleMouseMove(e) {
+            if (dragging) {
+                lon = (startX - e.clientX) * 0.1 + startLon;
+                lat = (e.clientY - startY) * 0.1 + startLat;
+            }
+        }
+
+        function handleMouseUp() {
+            dragging = false;
+        }
+
+        function handleWheel(e) {
+            e.preventDefault();
+            const fov = camera.fov + e.deltaY * 0.05;
+            camera.fov = THREE.MathUtils.clamp(fov, 30, 100);
+            camera.updateProjectionMatrix();
+        }
+
+        function handleResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function draw() {
+            requestAnimationFrame(draw);
+            lat = Math.max(-85, Math.min(85, lat));
+            const phi = THREE.MathUtils.degToRad(90 - lat);
+            const theta = THREE.MathUtils.degToRad(lon);
+            const x = 500 * Math.sin(phi) * Math.cos(theta);
+            const y = 500 * Math.cos(phi);
+            const z = 500 * Math.sin(phi) * Math.sin(theta);
+            camera.lookAt(x, y, z);
+            renderer.render(scene, camera);
+        }
+
+        function changeImage(i) {
+            idx = i;
+            loadImage(i);
+        }
+
+        function refreshUI(i) {
+            counter.textContent = `${i + 1} / ${imageList.length}`;
+            document.querySelectorAll('.thumb').forEach((t, j) => {
+                t.classList.toggle('active', j === i);
+            });
+        }
+
+        function buildGallery() {
+            imageList.forEach((img, i) => {
+                const t = document.createElement('img');
+                t.src = img;
+                t.className = 'thumb';
+                t.onclick = () => changeImage(i);
+                gallery.appendChild(t);
+            });
+        }
+
+        function showUI() {
+            header.classList.remove('hide');
+            navigation.classList.remove('hide');
+            gallery.classList.remove('hide');
+            footer.classList.remove('hide');
+            clearTimeout(hideTimer);
+            startHideTimer();
+        }
+
+        function startHideTimer() {
+            hideTimer = setTimeout(() => {
+                if (!infoPanel.classList.contains('open')) {
+                    header.classList.add('hide');
+                    navigation.classList.add('hide');
+                    gallery.classList.add('hide');
+                    footer.classList.add('hide');
+                }
+            }, 3500);
+        }
+
+        document.getElementById('btnPrev').onclick = () => {
+            changeImage((idx - 1 + imageList.length) % imageList.length);
+        };
+
+        document.getElementById('btnNext').onclick = () => {
+            changeImage((idx + 1) % imageList.length);
+        };
+
+        document.getElementById('btnFullscreen').onclick = () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        };
+
+        document.getElementById('btnInfo').onclick = () => {
+            infoPanel.classList.add('open');
+        };
+
+        document.getElementById('btnCloseInfo').onclick = () => {
+            infoPanel.classList.remove('open');
+        };
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') document.getElementById('btnPrev').click();
+            if (e.key === 'ArrowRight') document.getElementById('btnNext').click();
+            if (e.key === 'Escape') infoPanel.classList.remove('open');
+        });
+
+        buildGallery();
+        setup();
+    </script>
+</body>
+
+</html>
