@@ -20,6 +20,12 @@
     <meta name="author" content="Cristian Castañeda - Ranco Cherries Chimbarongo">
     <meta name="copyright" content="© 2026 Cristian Castañeda. All Rights Reserved.">
 
+    <!-- Favicons -->
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="android-chrome-192x192.png">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -613,6 +619,16 @@
                 loader.classList.add('fade');
                 refreshUI(i);
                 draw();
+
+                // Preload next and previous images in background
+                if (i < imageList.length - 1) {
+                    const nextImg = new Image();
+                    nextImg.src = imageList[i + 1];
+                }
+                if (i > 0) {
+                    const prevImg = new Image();
+                    prevImg.src = imageList[i - 1];
+                }
             }, undefined, (err) => {
                 console.error('Load error:', err);
                 loader.classList.add('fade');
@@ -721,12 +737,12 @@
         function applyMomentum() {
             if (!momentumActive) return;
 
-            const friction = 0.92;
+            const friction = 0.95; // Increased from 0.92 for slower deceleration
             velocityX *= friction;
             velocityY *= friction;
 
-            lon += velocityX * 10;
-            lat += velocityY * 10;
+            lon += velocityX * 5; // Reduced from 10 for slower movement
+            lat += velocityY * 5; // Reduced from 10 for slower movement
 
             if (Math.abs(velocityX) < 0.01 && Math.abs(velocityY) < 0.01) {
                 momentumActive = false;
