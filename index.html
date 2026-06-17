@@ -629,13 +629,26 @@
             startHideTimer();
         }
 
+        function getImagePath(imgPath, forceMobile = false) {
+            const isMobile = forceMobile || /Mobi|Android/i.test(navigator.userAgent) || window.innerWidth < 1024;
+            let maxTextureSize = 8192;
+            if (renderer) {
+                maxTextureSize = renderer.capabilities.getMaxTextureSize();
+            }
+            if (isMobile || maxTextureSize < 8192) {
+                return imgPath.replace('images/', 'images/mobile/');
+            }
+            return imgPath;
+        }
+
         function loadImage(i) {
             loader.classList.remove('fade');
 
             const loader3d = new THREE.TextureLoader();
+            const targetPath = getImagePath(imageList[i]);
 
             // First pass: Load with lower geometry for instant display
-            loader3d.load(imageList[i], (tex) => {
+            loader3d.load(targetPath, (tex) => {
                 // Apply anisotropic filtering for better quality
                 const maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
                 tex.anisotropy = maxAnisotropy;
@@ -674,12 +687,12 @@
                 // Preload next and previous images into Three.js cache for instant switching
                 const preloader = new THREE.TextureLoader();
                 if (i < imageList.length - 1) {
-                    preloader.load(imageList[i + 1], (preloadedTex) => {
+                    preloader.load(getImagePath(imageList[i + 1]), (preloadedTex) => {
                         preloadedTex.anisotropy = maxAnisotropy;
                     });
                 }
                 if (i > 0) {
-                    preloader.load(imageList[i - 1], (preloadedTex) => {
+                    preloader.load(getImagePath(imageList[i - 1]), (preloadedTex) => {
                         preloadedTex.anisotropy = maxAnisotropy;
                     });
                 }
@@ -861,7 +874,8 @@
         function buildGallery() {
             imageList.forEach((img, i) => {
                 const t = document.createElement('img');
-                t.src = img;
+                // Always load mobile/optimized versions for thumbnails to save bandwidth and memory
+                t.src = getImagePath(img, true);
                 t.className = 'thumb';
                 t.onclick = () => changeImage(i);
                 gallery.appendChild(t);
