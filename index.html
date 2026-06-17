@@ -684,17 +684,20 @@
                     }
                 }, 500);
 
-                // Preload next and previous images into Three.js cache for instant switching
-                const preloader = new THREE.TextureLoader();
-                if (i < imageList.length - 1) {
-                    preloader.load(getImagePath(imageList[i + 1]), (preloadedTex) => {
-                        preloadedTex.anisotropy = maxAnisotropy;
-                    });
-                }
-                if (i > 0) {
-                    preloader.load(getImagePath(imageList[i - 1]), (preloadedTex) => {
-                        preloadedTex.anisotropy = maxAnisotropy;
-                    });
+                // Preload next and previous images into Three.js cache for instant switching (Desktop only to prevent mobile memory crash)
+                const isMobileDevice = /Mobi|Android/i.test(navigator.userAgent) || window.innerWidth < 1024;
+                if (!isMobileDevice) {
+                    const preloader = new THREE.TextureLoader();
+                    if (i < imageList.length - 1) {
+                        preloader.load(getImagePath(imageList[i + 1]), (preloadedTex) => {
+                            preloadedTex.anisotropy = maxAnisotropy;
+                        });
+                    }
+                    if (i > 0) {
+                        preloader.load(getImagePath(imageList[i - 1]), (preloadedTex) => {
+                            preloadedTex.anisotropy = maxAnisotropy;
+                        });
+                    }
                 }
             }, undefined, (err) => {
                 console.error('Load error:', err);
