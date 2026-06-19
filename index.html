@@ -550,6 +550,14 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
+        // Global error logging for debugging
+        window.addEventListener('error', function(e) {
+            alert('Error: ' + e.message + ' in ' + e.filename + ' line ' + e.lineno);
+        });
+        window.addEventListener('unhandledrejection', function(e) {
+            alert('Promise Rejection: ' + e.reason);
+        });
+
         const imageList = [
             'images/DJI_0412.webp',
             'images/DJI_0413.webp',
