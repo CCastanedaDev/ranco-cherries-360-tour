@@ -629,7 +629,9 @@
 
         function setup() {
             scene = new THREE.Scene();
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1100);
+            const isMobile = /Mobi|Android/i.test(navigator.userAgent) || window.innerWidth < 1024;
+            const defaultFov = isMobile ? 85 : 75;
+            camera = new THREE.PerspectiveCamera(defaultFov, window.innerWidth / window.innerHeight, 1, 1100);
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setPixelRatio(window.devicePixelRatio);
             renderer.setSize(window.innerWidth, window.innerHeight);
