@@ -640,8 +640,8 @@
         function getImagePath(imgPath, forceMobile = false) {
             const isMobile = forceMobile || /Mobi|Android/i.test(navigator.userAgent) || window.innerWidth < 1024;
             let maxTextureSize = 8192;
-            if (renderer) {
-                maxTextureSize = renderer.capabilities.getMaxTextureSize();
+            if (renderer && renderer.capabilities) {
+                maxTextureSize = renderer.capabilities.maxTextureSize;
             }
             if (isMobile || maxTextureSize < 8192) {
                 return imgPath.replace('images/', 'images/mobile/');
